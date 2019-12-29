@@ -15,7 +15,7 @@ freeze: freeze_converter freeze_dev
 test: freeze
 	docker-compose run --rm test
 
-deploy: build
+deploy: test build
 	sam deploy
 
 start: build
