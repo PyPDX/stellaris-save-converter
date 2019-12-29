@@ -207,4 +207,3 @@ aws cloudformation describe-stacks \
 # Tail Lambda function Logs using Logical name defined in SAM Template
 sam logs -n HelloWorldFunction --stack-name sam-app --tail
 ```
-
