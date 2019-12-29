@@ -17,3 +17,6 @@ test: freeze
 
 deploy: build
 	sam deploy
+
+start: build
+	sam local start-api
