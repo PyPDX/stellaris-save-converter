@@ -7,4 +7,10 @@ docker_build_images:
 freeze_hello_world: docker_build_images
 	docker-compose run --rm hello_world pip freeze > hello_world/requirements.txt
 
-freeze: freeze_hello_world
+freeze_dev: docker_build_images
+	docker-compose run --rm test pip freeze > requirements.txt
+
+freeze: freeze_hello_world freeze_dev
+
+test: freeze
+	docker-compose run --rm test
