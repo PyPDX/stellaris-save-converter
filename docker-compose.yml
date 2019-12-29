@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  hello_world:
-    build: hello_world
+  converter:
+    build: converter
 
   test:
     build: .
