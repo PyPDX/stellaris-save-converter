@@ -33,9 +33,17 @@ def jsonify(f):
 
 
 def lambda_handler(event, context):
+    headers = event['headers']
+    try:
+        content_type = headers['Content-Type']
+    except KeyError:
+        content_type = headers['content-type']
+
+    body = event['body'].encode(ENCODING)
+
     multipart_data = decoder.MultipartDecoder(
-        event['body'].encode(ENCODING),
-        event['headers']['Content-Type'],
+        body,
+        content_type,
         encoding=ENCODING,
     )
 
