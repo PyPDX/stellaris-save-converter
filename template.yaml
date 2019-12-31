@@ -5,25 +5,7 @@ Description: >
 
   Sample SAM Template for sam-app
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    Timeout: 3
-
 Resources:
-  ConverterFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      CodeUri: converter/
-      Handler: app.lambda_handler
-      Runtime: python3.6
-      Events:
-        Converter:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /convert
-            Method: post
-
   FileStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -80,19 +62,29 @@ Resources:
             Path: /presign
             Method: get
 
+  ConverterFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: LambdaIamRole
+    Properties:
+      CodeUri: converter/
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Role: !GetAtt LambdaIamRole.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref FileStorageBucket
+          EXPIRATION: 60
+      Events:
+        Converter:
+          Type: Api
+          Properties:
+            Path: /convert
+            Method: post
+
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ApiRoot:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  ConverterFunction:
-    Description: "Converter Lambda Function ARN"
-    Value: !GetAtt ConverterFunction.Arn
-  ConverterFunctionIamRole:
-    Description: "Implicit IAM Role created for Converter function"
-    Value: !GetAtt ConverterFunctionRole.Arn
   FileStorageBucket:
     Description: "File S3 Bucket ARN"
     Value: !GetAtt FileStorageBucket.Arn
@@ -102,3 +94,6 @@ Outputs:
   PresignFunction:
     Description: "Presign Lambda Function ARN"
     Value: !GetAtt UploadPresignFunction.Arn
+  ConverterFunction:
+    Description: "Converter Lambda Function ARN"
+    Value: !GetAtt ConverterFunction.Arn
