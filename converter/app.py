@@ -62,8 +62,13 @@ def lambda_handler(event, context):
                 gamestate = jsonify(next(unzipped))
 
     return {
-        "statusCode": 200,
-        "body": json.dumps({
+        'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST',
+        },
+        'body': json.dumps({
             'meta': meta,
             'gamestate': gamestate,
         }),
