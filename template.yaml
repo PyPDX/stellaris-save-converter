@@ -23,6 +23,18 @@ Resources:
           Properties:
             Path: /convert
             Method: post
+  FileStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+              - POST
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -37,3 +49,6 @@ Outputs:
   ConverterFunctionIamRole:
     Description: "Implicit IAM Role created for Converter function"
     Value: !GetAtt ConverterFunctionRole.Arn
+  FileStorageBucket:
+    Description: "File S3 Bucket ARN"
+    Value: !GetAtt FileStorageBucket.Arn
