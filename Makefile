@@ -1,4 +1,4 @@
-build: freeze
+build: freeze validate
 	sam build
 
 docker_build_images:
@@ -12,7 +12,10 @@ freeze_dev: docker_build_images
 
 freeze: freeze_converter freeze_dev
 
-test: freeze
+validate:
+	sam validate
+
+test: freeze validate
 	docker-compose run --rm test
 
 deploy: test build
