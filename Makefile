@@ -18,5 +18,8 @@ test: freeze validate
 deploy: test package
 	sam deploy
 
+deploy_guided: test package
+	sam deploy --guided
+
 start: package
 	sam local start-api

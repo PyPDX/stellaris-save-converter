@@ -9,7 +9,7 @@ __pycache__/
 build/
 
 # Deploy
-samconfig.toml
+samconfig*.toml
 
 # Mac
 .DS_Store
