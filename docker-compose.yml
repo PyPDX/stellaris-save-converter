@@ -4,6 +4,9 @@ services:
   converter:
     build: converter
 
+  upload:
+    build: upload
+
   test:
     build: .
     command: python -m pytest -v

@@ -35,14 +35,26 @@ Resources:
             AllowedMethods:
               - GET
               - POST
+  UploadPresignFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload/
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Events:
+        Presign:
+          Type: Api
+          Properties:
+            Path: /presign
+            Method: get
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  ConverterApi:
-    Description: "API Gateway endpoint URL for Prod stage for Converter function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/convert/"
+  ApiRoot:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ConverterFunction:
     Description: "Converter Lambda Function ARN"
     Value: !GetAtt ConverterFunction.Arn
@@ -52,3 +64,9 @@ Outputs:
   FileStorageBucket:
     Description: "File S3 Bucket ARN"
     Value: !GetAtt FileStorageBucket.Arn
+  PresignFunction:
+    Description: "Presign Lambda Function ARN"
+    Value: !GetAtt UploadPresignFunction.Arn
+  PresignFunctionIamRole:
+    Description: "Implicit IAM Role created for Presign function"
+    Value: !GetAtt UploadPresignFunctionRole.Arn
