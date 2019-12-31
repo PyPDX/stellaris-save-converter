@@ -1,10 +1,10 @@
-build: freeze validate
+package: freeze validate
 	sam build
 
-docker_build_images:
+build:
 	docker-compose build
 
-freeze: docker_build_images
+freeze: build
 	docker-compose run --rm converter pip freeze > converter/requirements.txt
 	docker-compose run --rm upload pip freeze > upload/requirements.txt
 	docker-compose run --rm test pip freeze > requirements.txt
@@ -15,8 +15,8 @@ validate:
 test: freeze validate
 	docker-compose run --rm test
 
-deploy: test build
+deploy: test package
 	sam deploy
 
-start: build
+start: package
 	sam local start-api
