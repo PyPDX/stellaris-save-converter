@@ -23,6 +23,7 @@ Resources:
           Properties:
             Path: /convert
             Method: post
+
   FileStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -35,12 +36,43 @@ Resources:
             AllowedMethods:
               - GET
               - POST
+
+  LambdaIamRole:
+    Type: AWS::IAM::Role
+    DependsOn: FileStorageBucket
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                Resource: !Join ["", [!GetAtt FileStorageBucket.Arn, "/*"]]
+          PolicyName: stellaris-save-converter
+
   UploadPresignFunction:
     Type: AWS::Serverless::Function
+    DependsOn: LambdaIamRole
     Properties:
       CodeUri: upload/
       Handler: app.lambda_handler
       Runtime: python3.6
+      Role: !GetAtt LambdaIamRole.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref FileStorageBucket
+          EXPIRATION: 60
       Events:
         Presign:
           Type: Api
@@ -64,9 +96,9 @@ Outputs:
   FileStorageBucket:
     Description: "File S3 Bucket ARN"
     Value: !GetAtt FileStorageBucket.Arn
+  FunctionIamRole:
+    Description: "IAM role for functions"
+    Value: !GetAtt LambdaIamRole.Arn
   PresignFunction:
     Description: "Presign Lambda Function ARN"
     Value: !GetAtt UploadPresignFunction.Arn
-  PresignFunctionIamRole:
-    Description: "Implicit IAM Role created for Presign function"
-    Value: !GetAtt UploadPresignFunctionRole.Arn
