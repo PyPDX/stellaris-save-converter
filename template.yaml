@@ -51,8 +51,8 @@ Resources:
     Type: AWS::Serverless::Function
     DependsOn: LambdaIamRole
     Properties:
-      CodeUri: upload/
-      Handler: app.lambda_handler
+      CodeUri: presign/
+      Handler: app.upload_lambda_handler
       Runtime: python3.6
       Role: !GetAtt LambdaIamRole.Arn
       Environment:
@@ -60,10 +60,10 @@ Resources:
           BUCKET_NAME: !Ref BucketName
           EXPIRATION: 60
       Events:
-        Presign:
+        Upload:
           Type: Api
           Properties:
-            Path: /presign
+            Path: /upload
             Method: get
 
   ConverterFunction:
@@ -101,8 +101,8 @@ Outputs:
   FunctionIamRole:
     Description: "IAM role for functions"
     Value: !GetAtt LambdaIamRole.Arn
-  PresignFunction:
-    Description: "Presign Lambda Function ARN"
+  UploadFunction:
+    Description: "Upload Lambda Function ARN"
     Value: !GetAtt UploadPresignFunction.Arn
   ConverterFunction:
     Description: "Converter Lambda Function ARN"

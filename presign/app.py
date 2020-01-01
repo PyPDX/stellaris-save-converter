@@ -18,7 +18,7 @@ def presign_upload(key):
     )
 
 
-def lambda_handler(event, context):
+def upload_lambda_handler(event, context):
     now = datetime.now()
     key = f'{now.year}/{now.month}/{now.day}/{uuid.uuid4()}/save.zip'
 

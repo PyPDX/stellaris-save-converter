@@ -4,8 +4,8 @@ services:
   converter:
     build: converter
 
-  upload:
-    build: upload
+  presign:
+    build: presign
 
   test:
     build: .
