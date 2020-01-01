@@ -1,3 +1,4 @@
 -r converter/requirements-top.txt
+-r presign/requirements-top.txt
 pytest
 pytest-mock

@@ -4,6 +4,9 @@ services:
   converter:
     build: converter
 
+  presign:
+    build: presign
+
   test:
     build: .
     command: python -m pytest -v
