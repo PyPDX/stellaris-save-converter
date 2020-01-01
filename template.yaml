@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  sam-app
-
-  Sample SAM Template for sam-app
+Description: Serverless Stellaris save file converter
 
 Parameters:
   BucketName:
@@ -112,7 +109,7 @@ Resources:
 
 Outputs:
   ApiRoot:
-    Description: "API Gateway endpoint URL for Prod stage"
+    Description: "API Gateway root endpoint"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   FileStorageBucket:
     Description: "File S3 Bucket ARN"
