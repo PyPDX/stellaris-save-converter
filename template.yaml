@@ -66,6 +66,25 @@ Resources:
             Path: /upload
             Method: get
 
+  DownloadPresignFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: LambdaIamRole
+    Properties:
+      CodeUri: presign/
+      Handler: app.download_lambda_handler
+      Runtime: python3.6
+      Role: !GetAtt LambdaIamRole.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref BucketName
+          EXPIRATION: 60
+      Events:
+        Upload:
+          Type: Api
+          Properties:
+            Path: /download
+            Method: get
+
   ConverterFunction:
     Type: AWS::Serverless::Function
     DependsOn: LambdaIamRole
@@ -104,6 +123,9 @@ Outputs:
   UploadFunction:
     Description: "Upload Lambda Function ARN"
     Value: !GetAtt UploadPresignFunction.Arn
+  DownloadFunction:
+    Description: "Download Lambda Function ARN"
+    Value: !GetAtt DownloadPresignFunction.Arn
   ConverterFunction:
     Description: "Converter Lambda Function ARN"
     Value: !GetAtt ConverterFunction.Arn
