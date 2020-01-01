@@ -5,10 +5,15 @@ Description: >
 
   Sample SAM Template for sam-app
 
+Parameters:
+  BucketName:
+    Type: String
+
 Resources:
   FileStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: !Ref BucketName
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -21,7 +26,6 @@ Resources:
 
   LambdaIamRole:
     Type: AWS::IAM::Role
-    DependsOn: FileStorageBucket
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -40,7 +44,7 @@ Resources:
                 Action:
                   - "s3:GetObject"
                   - "s3:PutObject"
-                Resource: !Join ["", [!GetAtt FileStorageBucket.Arn, "/*"]]
+                Resource: !Join ["", ["arn:aws:s3:::", !Ref BucketName, "/*"]]
           PolicyName: stellaris-save-converter
 
   UploadPresignFunction:
@@ -53,7 +57,7 @@ Resources:
       Role: !GetAtt LambdaIamRole.Arn
       Environment:
         Variables:
-          BUCKET_NAME: !Ref FileStorageBucket
+          BUCKET_NAME: !Ref BucketName
           EXPIRATION: 60
       Events:
         Presign:
@@ -70,16 +74,22 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.6
       Role: !GetAtt LambdaIamRole.Arn
+      MemorySize: 3008
+      Timeout: 900
       Environment:
         Variables:
-          BUCKET_NAME: !Ref FileStorageBucket
-          EXPIRATION: 60
+          BUCKET_NAME: !Ref BucketName
       Events:
         Converter:
-          Type: Api
+          Type: S3
           Properties:
-            Path: /convert
-            Method: post
+            Bucket: !Ref FileStorageBucket
+            Events: "s3:ObjectCreated:*"
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: zip
 
 Outputs:
   ApiRoot:

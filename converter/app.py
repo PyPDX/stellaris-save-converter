@@ -1,8 +1,10 @@
 import json
 import logging
 import os
+import traceback
 from contextlib import contextmanager
 from io import BytesIO
+from pprint import pformat
 from tokenize import tokenize
 from zipfile import ZipFile
 
@@ -13,7 +15,6 @@ from clausewitz.util.tokenize import prepare
 ENCODING = 'utf-8'
 s3 = boto3.client('s3')
 BUCKET_NAME = os.environ['BUCKET_NAME']
-EXPIRATION = int(os.environ.get('EXPIRATION', 60))  # default: 1 min
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -33,42 +34,32 @@ def unzip_save(f: BytesIO):
         with zip.open('meta') as meta:
             logger.info('Parsing meta')
             yield 'meta', meta
-        # TODO this takes too long..
-        # with zip.open('gamestate') as gamestate:
-        #     logger.info('Parsing gamestate')
-        #     yield 'gamestate', gamestate
+        with zip.open('gamestate') as gamestate:
+            logger.info('Parsing gamestate')
+            yield 'gamestate', gamestate
 
 
 def jsonify(f):
     return parse(tokenize(prepare(f.readline)))
 
 
-def upload(key, data):
-    binary_data = json.dumps(
-        data,
-        separators=(',', ':'),
-    ).encode(ENCODING)
+def upload(key, data, *, json_=True):
+    if json_:
+        s = json.dumps(
+            data,
+            separators=(',', ':'),
+        )
+    else:
+        s = str(data)
+
+    binary_data = s.encode(ENCODING)
     logger.info(f"Uploading {len(binary_data)} bytes to '{key}'")
 
     with BytesIO(binary_data) as f:
         s3.upload_fileobj(f, BUCKET_NAME, key)
 
 
-def presign_download(key):
-    return s3.generate_presigned_url(
-        'get_object',
-        Params={
-            'Bucket': BUCKET_NAME,
-            'Key': key,
-        },
-        ExpiresIn=EXPIRATION,
-    )
-
-
-def lambda_handler(event, context):
-    data = json.loads(event['body'])
-
-    key = data['key']
+def handle(key):
     with get_s3_file(key) as f:
         result = {
             name: jsonify(unzipped)
@@ -82,16 +73,24 @@ def lambda_handler(event, context):
 
     new_key = f"{os.path.dirname(key)}/{save_name}.json"
     upload(new_key, result)
-    download_url = presign_download(new_key)
+    return new_key
 
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'POST',
-        },
-        'body': json.dumps({
-            'url': download_url,
-        }),
-    }
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+        logger.info(pformat(record))
+        key = record['s3']['object']['key']
+        if not key.endswith('/save.zip'):
+            continue
+        dirname = os.path.dirname(key)
+        if not dirname:
+            continue
+
+        try:
+            new_key = handle(key)
+        except Exception:
+            tb = traceback.format_exc()
+            upload(f'{dirname}/ERROR', tb, json_=False)
+            logger.error(tb)
+        else:
+            upload(f'{dirname}/SUCCESS', new_key, json_=False)
