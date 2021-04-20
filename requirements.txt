@@ -8,7 +8,7 @@ jmespath==0.9.4
 more-itertools==8.0.2
 packaging==19.2
 pluggy==0.13.1
-py==1.8.1
+py==1.10.0
 pyparsing==2.4.6
 pypdx-clausewitz==0.2
 pytest==5.3.2
